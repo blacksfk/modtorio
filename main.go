@@ -2,17 +2,21 @@
 Package to search mods.factorio.com. Valid commands: search, download, help.
 Authentication with factorio.com is requried to download mods, and the user
 is prompted prior to downloading.
- */
+*/
 package main
 
 import (
-	"os"
-	"fmt"
 	"bufio"
-	"syscall"
-	"strings"
+	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
+	"os"
+	"strings"
+	"syscall"
 )
+
+type credentials struct {
+	username, password, token string
+}
 
 // main function.
 // command argument handling
@@ -50,16 +54,9 @@ func search() {
 }
 
 // download one or more mods.
-// authenticates with the factorio.com web auth API via user
-// password prompts.
+// authenticates with the factorio.com web auth API
 func download() {
-	stdin := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Please enter your credentials to download from mods.factorio.com")
-
-	// prompt the user for their username
-	fmt.Print("Username: ")
-	s, err := stdin.ReadString('\n')
+	creds, err := promptForCreds()
 
 	if err != nil {
 		fmt.Println(err)
@@ -67,34 +64,43 @@ func download() {
 		return
 	}
 
-	// drop the trailing new line char
-	username := strings.TrimRight(s, "\n")
+	creds.token, err = login(creds.username, creds.password)
 
-	// use terminal to read the password so it isn't
-	// echoed back to the user in plaintext
+	if err != nil {
+		fmt.Println(err)
+
+		return
+	}
+
+	fmt.Printf("token: %s\n", creds.token)
+}
+
+// prompt the user for their login credentials
+func promptForCreds() (*credentials, error) {
+	fmt.Println("Please enter your credentials to download from mods.factorio.com")
+
+	stdin := bufio.NewReader(os.Stdin)
+	fmt.Print("Username: ")
+	username, err := stdin.ReadString('\n')
+
+	if err != nil {
+		return nil, err
+	}
+
+	// use the terminal package to read the password so it isn't
+	// echoed back to the user in plain sight
 	fmt.Print("Password: ")
 	bytes, err := terminal.ReadPassword(int(syscall.Stdin))
 
 	if err != nil {
-		fmt.Println(err)
-
-		return
+		return nil, err
 	}
 
-	// insert a newline so that the next prompt isn't printed on the
-	// same line as the password prompt, then cast bytes to a string
-	// and attempt to log the user in
+	// insert a linefeed ('\n') so that the next prompt isn't printed on the
+	// same line as the password prompt
 	fmt.Printf("\n")
-	password := string(bytes)
-	token, err := login(username, string(password))
 
-	if err != nil {
-		fmt.Println(err)
-
-		return
-	}
-
-	fmt.Printf("token: %s\n", token)
+	return &credentials{username: strings.TrimRight(username, "\n"), password: string(bytes)}, nil
 }
 
 // display help for program usage
