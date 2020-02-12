@@ -1,39 +1,38 @@
-package main
+/*
+Package to send login, search, and download requests to *.factorio.com
+*/
+package request
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"modtorio/credentials"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 const (
 	URL_LOGIN = "https://auth.factorio.com/api-login"
 )
 
-type ApiError struct {
-	Message string
+type apiError struct {
+	message string
 }
 
 // log the user in with an HTTP POST request
-func login(username, password string) (string, error) {
+func Login(creds *credentials.Credentials) error {
 	data := url.Values{}
 
-	data.Set("username", username)
-	data.Set("password", password)
+	// append username and password
+	data.Set("username", creds.Username)
+	data.Set("password", creds.Password)
 
-	// create the request and client
-	req, err := http.NewRequest("POST", URL_LOGIN, strings.NewReader(data.Encode()))
-	client := http.Client{}
-
-	// add the content type header and send the request
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, err := client.Do(req)
+	// send the request
+	res, err := http.PostForm(URL_LOGIN, data)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// read the response data
@@ -41,21 +40,21 @@ func login(username, password string) (string, error) {
 	res.Body.Close()
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if res.StatusCode >= 400 {
 		// something went wrong with the request
-		ae := &ApiError{}
+		ae := &apiError{}
 		err = json.Unmarshal(body, ae)
 
 		if err != nil {
 			// conversion to JSON failed
-			return "", err
+			return err
 		}
 
 		// return the API error
-		return "", fmt.Errorf("%s: %s", res.Status, ae.Message)
+		return fmt.Errorf("%s: %s", res.Status, ae.message)
 	}
 
 	// request/response was all good, convert to JSON
@@ -64,9 +63,11 @@ func login(username, password string) (string, error) {
 
 	if err != nil {
 		// conversion to JSON failed
-		return "", err
+		return err
 	}
 
+	creds.Token = resData[0]
+
 	// all is good, return no error
-	return resData[0], nil
+	return nil
 }
