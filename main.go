@@ -9,20 +9,18 @@ import (
 	"bufio"
 	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
+	"modtorio/credentials"
+	"modtorio/request"
 	"os"
 	"strings"
 	"syscall"
 )
 
-type credentials struct {
-	username, password, token string
-}
-
 // main function.
 // command argument handling
 func main() {
 	// check if at least one command was provided
-	if len(os.Args) < 2 {
+	if len(os.Args) < 3 {
 		fmt.Println("Invalid command")
 		help()
 
@@ -56,6 +54,7 @@ func search() {
 // download one or more mods.
 // authenticates with the factorio.com web auth API
 func download() {
+	// first, log the user in
 	creds, err := promptForCreds()
 
 	if err != nil {
@@ -64,7 +63,7 @@ func download() {
 		return
 	}
 
-	creds.token, err = login(creds.username, creds.password)
+	err = request.Login(creds)
 
 	if err != nil {
 		fmt.Println(err)
@@ -72,11 +71,27 @@ func download() {
 		return
 	}
 
-	fmt.Printf("token: %s\n", creds.token)
+	// then get the "short" information for each mod and
+	// download the archives
+	for _, term := range os.Args[2:] {
+		mod, err := request.GetMod(term)
+
+		if err != nil {
+			// if an error occurred with this search term,
+			// print the error and continue
+			fmt.Printf("%s: %s\n", term, err)
+		} else {
+			err = request.DownloadMod(&mod.Releases[len(mod.Releases)-1], creds)
+
+			if err != nil {
+				fmt.Printf("%s: %s\n", term, err)
+			}
+		}
+	}
 }
 
 // prompt the user for their login credentials
-func promptForCreds() (*credentials, error) {
+func promptForCreds() (*credentials.Credentials, error) {
 	fmt.Println("Please enter your credentials to download from mods.factorio.com")
 
 	stdin := bufio.NewReader(os.Stdin)
@@ -100,7 +115,7 @@ func promptForCreds() (*credentials, error) {
 	// same line as the password prompt
 	fmt.Printf("\n")
 
-	return &credentials{username: strings.TrimRight(username, "\n"), password: string(bytes)}, nil
+	return credentials.NewCredentials(strings.TrimRight(username, "\n"), string(bytes)), nil
 }
 
 // display help for program usage
