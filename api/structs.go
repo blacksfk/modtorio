@@ -1,5 +1,9 @@
 package api
 
+import (
+	"fmt"
+)
+
 // returned from mods.factorio.com/api/mods
 type ModListResponse struct {
 	Pagination Pagination
