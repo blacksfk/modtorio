@@ -2,8 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strings"
+	"strconv"
 )
 
 const (
@@ -11,16 +12,43 @@ const (
 )
 
 // get all mods
-func GetAll() ([]*Result, error) {
-	count, e := getModCount()
+func GetAll(names ...string) ([]*Result, error) {
+	var e error
+	var size int
+	namelist := strings.Builder{}
+	count := len(names)
+
+	if count == 0 {
+		// no mod names passed so get all mods
+		size, e = getModCount()
+	} else {
+		size = count
+
+		// build a string of mod names separated by a comma
+		for _, n := range names {
+			namelist.WriteString(",")
+			namelist.WriteString(n)
+		}
+	}
 
 	if e != nil {
 		return nil, e
 	}
 
+	url := strings.Builder{}
+	url.WriteString(URL_MOD)
+	url.WriteString("?page_size=")
+	url.WriteString(strconv.Itoa(size))
+
+	// only append &namelist=<list> if count > 0
+	if count > 0 {
+		url.WriteString("?namelist=")
+		url.WriteString(namelist.String())
+	}
+
 	// get all mods in one shot by requesting a "page" with all of the mods
 	// i.e. page_size=<no_of_mods>
-	res, e := http.Get(URL_MOD + fmt.Sprintf("?page_size=%d", count))
+	res, e := http.Get(url.String())
 
 	if e != nil {
 		return nil, e
