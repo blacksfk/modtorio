@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"modtorio/credentials"
 	"net/http"
 	"net/url"
