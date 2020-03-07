@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"modtorio/credentials"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -56,8 +57,8 @@ type Release struct {
 }
 
 // compare release version
-func (r *Release) CmpVersion(version string) bool {
-	return r.Info_json.Factorio_version == version
+func (r *Release) CmpVersion(re *regexp.Regexp) bool {
+	return re.MatchString(r.Info_json.Factorio_version)
 }
 
 // download a release
