@@ -1,46 +1,96 @@
 /*
-Package to search mods.factorio.com. Valid commands: search, download, help.
+Package to search mods.factorio.com.
 Authentication with factorio.com is requried to download mods, and the user
 is prompted prior to downloading.
 */
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
 
 const (
-	MIN_ARGS = 3
+	FLAG_DIR = "dir" // name of the working directory flag
+	FLAG_VER = "factorio" // name of the factorio version flag
+	DEF_DIR = "./" // default to the current directory
+	DEF_VER = "*" // default to match any version
 )
+
+type command struct {
+	name string // command string
+	min int // minimum args for the command
+	fn func([]string) // function to handle the command
+}
+
+// compare a commandline string to the command's name
+func (c command) cmp(name string) bool {
+	return c.name == name
+}
+
+// command definitions
+var commands []command = []command{
+	{"search", 1, search},
+	{"download", 1, download},
+	{"update", 0, update},
+	{"enable", 1, enable},
+	{"disable", 1, disable},
+	{"list-enabled", 0, listEnabled},
+	{"list-disabled", 0, listDisabled},
+}
+
+// package wide flag values
+var dir, fVer string
 
 // main function.
 // command argument handling
 func main() {
-	// check if at least one command was provided
-	if len(os.Args) < MIN_ARGS {
-		fmt.Println("Not enough arguments")
-		help()
+	// define flags
+	flag.StringVar(&dir, FLAG_DIR, DEF_DIR, "Working directory")
+	flag.StringVar(&fVer, FLAG_VER, DEF_VER, "Factorio version")
 
-		return
+	// parse the flags
+	flag.Parse()
+
+	// subtract 1 to compensate for program name
+	argv := os.Args[1:]
+	skip := 0
+
+	// loop and subtract argc for each flag argument
+	for _, arg := range argv {
+		if arg == FLAG_DIR || arg == FLAG_VER {
+			// skip 2; one for flag, one for the flag's value
+			skip += 2
+		}
 	}
 
-	cmd := os.Args[1]
+	cmd := argv[skip]
+	// subtract the command arg and flag args
+	argc := len(argv) - skip - 1
+	found := false
 
-	// determine what the user wants to do
-	switch cmd {
-	case "search":
-		search(os.Args[2:])
-	case "download":
-		download(os.Args[2:])
-	case "-h":
-		fallthrough
-	case "--help":
-		fallthrough
-	case "help":
+	// loop through all the commands and check for a match
+	for _, c := range commands {
+		if c.cmp(cmd) {
+			if argc >= c.min {
+				found = true
+				c.fn(argv)
+
+				break
+			} else {
+				// not enough args given for the command
+				fmt.Printf("Not enough arguments for command: %s. Minimum: %d, Found: %d\n", c.name, c.min, argc)
+				help()
+
+				return
+			}
+		}
+	}
+
+	if !found {
+		fmt.Printf("Invalid command: %s\n")
 		help()
-	default:
-		fmt.Printf("Invalid command: %s\n", cmd)
 	}
 }
 
@@ -49,7 +99,7 @@ func help() {
 	fmt.Printf("usage: modtorio [...flags] <command> [...options] <arguments>\n\n")
 
 	fmt.Printf("Flags:\n")
-	fmt.Printf("\t--dir\tSpecify the working directory for commands that interact with modlist.json. Leave blank if the current directory contains modlist.json\n")
+	fmt.Printf("\t--dir\tSpecify the working directory for commands that interact with modlist.json. Leave blank if the current directory contains modlist.json or you want modlist.json to be created in the current directory.\n")
 	fmt.Printf("\t--factorio\tSpecify the factorio version to compare releases against. Defaults to the latest version\n\n")
 
 	fmt.Printf("Commands:\n")
