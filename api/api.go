@@ -25,7 +25,7 @@ func handleResponse(res *http.Response) ([]byte, error) {
 		}
 
 		// something went wrong with the request
-		return nil, fmt.Errorf("%d %s: %s", res.StatusCode, res.Status, reqError.message)
+		return nil, fmt.Errorf("%s: %s", res.Status, reqError.Message)
 	}
 
 	return body, nil
