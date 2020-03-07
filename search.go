@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	REGEXP_FLAGS = "(?i)"
 	MIN_OPTION_ARGS = 2
 )
 
@@ -37,10 +38,10 @@ func search(args []string) {
 			cmp = matchOwner
 		}
 
-		re, e = regexp.Compile(args[1])
+		re, e = regexp.Compile(REGEXP_FLAGS + args[1])
 	default:
 		cmp = matchName
-		re, e = regexp.Compile(args[0])
+		re, e = regexp.Compile(REGEXP_FLAGS + args[0])
 	}
 
 	if e != nil {
