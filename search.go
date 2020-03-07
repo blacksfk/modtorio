@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	REGEXP_FLAGS = "(?i)"
+	REGEXP_FLAGS    = "(?i)"
 	MIN_OPTION_ARGS = 2
 )
 
