@@ -7,53 +7,21 @@ import (
 	"modtorio/api"
 	"modtorio/credentials"
 	"os"
+	"regexp"
 	"strings"
 	"syscall"
 )
 
 const (
-	FLAG_VERSION = "--factorio"
 	MAX_LOGIN_ATTEMPS = 5
 )
 
 func download(args []string) {
-	latest := true
-	length := len(args)
-	var version string
-
-	for i := 0; i < length; i++ {
-		if args[i] == FLAG_VERSION {
-			if i == length-1 {
-				// user forgot the version number
-				fmt.Println("Version number must follow the version option")
-				help()
-
-				return
-			}
-
-			latest = false
-			version = args[i+1]
-
-			// remove the --version <version> from the args slice
-			if i == 0 {
-				// version was specified at the beginning
-				args = args[i+2:]
-			} else if i == length-2 {
-				// version was specified at the end
-				args = args[:i-1]
-			} else {
-				// the bastard put it in the middle
-				args = append(args[:i-1], args[i+2:]...)
-			}
-
-			break
-		}
-	}
-
 	var creds *credentials.Credentials
 	var e error
 	attempts := 0
 
+	// loop until the login is successful or until MAX_LOGIN_ATTEMPTS is reached
 	for ; attempts < MAX_LOGIN_ATTEMPS; attempts++ {
 		// prompt the user for their credentials
 		creds, e = promptForCreds()
@@ -90,10 +58,12 @@ func download(args []string) {
 		return
 	}
 
-	if latest {
+	if fVer == DEF_VER {
+		// latest
 		downloadLatest(results, creds)
 	} else {
-		downloadVersion(results, creds, version)
+		// a version was specified
+		downloadVersion(results, creds)
 	}
 }
 
@@ -140,14 +110,16 @@ func downloadLatest(results []*api.Result, creds *credentials.Credentials) {
 }
 
 // download a the latest release of the specified FACTORIO version
-func downloadVersion(results []*api.Result, creds *credentials.Credentials, version string) {
+func downloadVersion(results []*api.Result, creds *credentials.Credentials) {
+	re := regexp.MustCompile(fVer)
+
 	for _, result := range results {
 		found := false
 
 		// start from the end to find the latest release for
 		// the specified factorio version
-		for i := len(result.Releases); i >= 0; i-- {
-			if result.Releases[i].CmpVersion(version) {
+		for i := len(result.Releases) - 1; i >= 0; i-- {
+			if result.Releases[i].CmpVersion(re) {
 				found = true
 				e := result.Releases[i].Download(creds)
 
@@ -163,7 +135,7 @@ func downloadVersion(results []*api.Result, creds *credentials.Credentials, vers
 		}
 
 		if !found {
-			fmt.Printf("Could not find version %s for mod %s\n", version, result.Name)
+			fmt.Printf("Could not find version %s for mod %s\n", re, result.Name)
 		}
 	}
 }
