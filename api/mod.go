@@ -1,10 +1,11 @@
 package api
 
 import (
+	"fmt"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -25,9 +26,13 @@ func GetAll(names ...string) ([]*Result, error) {
 		size = count
 
 		// build a string of mod names separated by a comma
-		for _, n := range names {
-			namelist.WriteString(",")
-			namelist.WriteString(n)
+		for i := 0; i < count; i++ {
+			namelist.WriteString(names[i])
+
+			if i < count-1 {
+				// only append a comma if not the last element
+				namelist.WriteString(",")
+			}
 		}
 	}
 
@@ -42,7 +47,7 @@ func GetAll(names ...string) ([]*Result, error) {
 
 	// only append &namelist=<list> if count > 0
 	if count > 0 {
-		url.WriteString("?namelist=")
+		url.WriteString("&namelist=")
 		url.WriteString(namelist.String())
 	}
 
