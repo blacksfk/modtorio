@@ -12,16 +12,16 @@ import (
 )
 
 const (
-	FLAG_DIR = "dir" // name of the working directory flag
+	FLAG_DIR = "dir"      // name of the working directory flag
 	FLAG_VER = "factorio" // name of the factorio version flag
-	DEF_DIR = "./" // default to the current directory
-	DEF_VER = "*" // default to match any version
+	DEF_DIR  = "./"       // default to the current directory
+	DEF_VER  = "*"        // default to match any version
 )
 
 type command struct {
-	name string // command string
-	min int // minimum args for the command
-	fn func([]string) // function to handle the command
+	name string         // command string
+	min  int            // minimum args for the command
+	fn   func([]string) // function to handle the command
 }
 
 // compare a commandline string to the command's name
@@ -59,7 +59,7 @@ func main() {
 
 	// loop and subtract argc for each flag argument
 	for _, arg := range argv {
-		if arg == FLAG_DIR || arg == FLAG_VER {
+		if arg == "--"+FLAG_DIR || arg == "--"+FLAG_VER {
 			// skip 2; one for flag, one for the flag's value
 			skip += 2
 		}
@@ -89,7 +89,7 @@ func main() {
 	}
 
 	if !found {
-		fmt.Printf("Invalid command: %s\n")
+		fmt.Printf("Invalid command: %s\n", cmd)
 		help()
 	}
 }
