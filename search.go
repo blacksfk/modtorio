@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 	"modtorio/api"
+	"regexp"
 )
 
 const (
