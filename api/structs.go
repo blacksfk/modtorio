@@ -2,6 +2,15 @@ package api
 
 import (
 	"fmt"
+	"io/ioutil"
+	"modtorio/credentials"
+	"net/http"
+	"strings"
+)
+
+const (
+	MODE   = 0644
+	URL_DL = "https://mods.factorio.com"
 )
 
 // returned from mods.factorio.com/api/mods
@@ -46,6 +55,42 @@ type Release struct {
 	}
 }
 
+// compare release version
+func (r *Release) CmpVersion(version string) bool {
+	return r.Info_json.Factorio_version == version
+}
+
+// download a release
+func (r *Release) Download(creds *credentials.Credentials) error {
+	b := strings.Builder{}
+	b.WriteString(URL_DL)
+	b.WriteString(r.Download_url)
+	b.WriteString("?username=")
+	b.WriteString(creds.Username)
+	b.WriteString("&token=")
+	b.WriteString(creds.Token)
+
+	res, e := http.Get(b.String())
+
+	if e != nil {
+		return e
+	}
+
+	body, e := handleResponse(res)
+
+	if e != nil {
+		return e
+	}
+
+	e = ioutil.WriteFile(r.File_name, body, MODE)
+
+	if e != nil {
+		return e
+	}
+
+	return nil
+}
+
 // mod tags (refer to array above)
 type Tag struct {
 	Id                             int
@@ -54,5 +99,5 @@ type Tag struct {
 
 // JSON API errors
 type apiError struct {
-	message string
+	Message string
 }
