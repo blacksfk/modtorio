@@ -36,6 +36,7 @@ var commands []command = []command{
 	{"update", 0, update},
 	{"enable", 1, enable},
 	{"disable", 1, disable},
+	{"list-installed", 0, listInstalled},
 	{"list-enabled", 0, listEnabled},
 	{"list-disabled", 0, listDisabled},
 }
@@ -100,7 +101,7 @@ func help() {
 
 	fmt.Printf("Flags:\n")
 	fmt.Printf("\t--dir\tSpecify the working directory for commands that interact with modlist.json. Leave blank if the current directory contains modlist.json or you want modlist.json to be created in the current directory.\n")
-	fmt.Printf("\t--factorio\tSpecify the factorio version to compare releases against. Defaults to the latest version\n\n")
+	fmt.Printf("\t--factorio\tSpecify the factorio version to compare releases against. Defaults to the latest version.\n\n")
 
 	fmt.Printf("Commands:\n")
 
@@ -143,6 +144,13 @@ func help() {
 	fmt.Printf("\tExamples:\n")
 	fmt.Printf("\t\tmodtorio disable bob* pyhightech ^angel\n")
 	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods disable bob*\n")
+
+	// list-installed command
+	fmt.Printf("list-installed\n")
+	fmt.Printf("\tList all mods with their status.\n")
+	fmt.Printf("\tExamples:\n")
+	fmt.Printf("\t\tmodtorio list-installed\n")
+	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods list-installed\n")
 
 	// list-enabled command
 	fmt.Printf("list-enabled\n")
