@@ -27,14 +27,16 @@ func listInstalled(args []string) {
 		}
 	}
 
-	fmt.Println("longest:", longest)
-
 	// how many dashes to print
 	// +1: 3 pipes - 2 surrounding
 	// +4: 4 spaces between pipes and strings
 	// +7: len("Enabled")
 	hSepCount := longest + 1 + 4 + 7
 
+	fmt.Print("|")
+	printStringTimes(H_SEP, hSepCount)
+	fmt.Print("|")
+	fmt.Println()
 	fmt.Printf("| % -*s | Enabled |\n", longest, "Name")
 	fmt.Print("|")
 	printStringTimes(H_SEP, hSepCount)
