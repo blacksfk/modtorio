@@ -16,7 +16,7 @@ const (
 	MAX_LOGIN_ATTEMPS = 5
 )
 
-func download(args []string) {
+func download(options []string) error {
 	var creds *credentials.Credentials
 	var e error
 	attempts := 0
@@ -28,9 +28,7 @@ func download(args []string) {
 
 		if e != nil {
 			// something went wrong with the input
-			fmt.Println(e)
-
-			return
+			return e
 		}
 
 		e = api.Login(creds)
@@ -44,27 +42,25 @@ func download(args []string) {
 	}
 
 	if attempts >= MAX_LOGIN_ATTEMPS {
-		fmt.Println("Maximum login attempts exceeded")
-
-		return
+		return fmt.Errorf("Maximum login attempts exceeded")
 	}
 
 	// get the mod results for each mod
-	results, e := api.GetAll(args...)
+	results, e := api.GetAll(options...)
 
 	if e != nil {
-		fmt.Println(e)
-
-		return
+		return e
 	}
 
 	if fVer == DEF_VER {
 		// latest
 		downloadLatest(results, creds)
-	} else {
-		// a version was specified
-		downloadVersion(results, creds)
+
+		return nil
 	}
+
+	// a version was specified
+	return downloadVersion(results, creds)
 }
 
 // prompt the user for their login credentials
@@ -110,7 +106,7 @@ func downloadLatest(results []*api.Result, creds *credentials.Credentials) {
 }
 
 // download a the latest release of the specified FACTORIO version
-func downloadVersion(results []*api.Result, creds *credentials.Credentials) {
+func downloadVersion(results []*api.Result, creds *credentials.Credentials) error {
 	re := regexp.MustCompile(fVer)
 
 	for _, result := range results {
@@ -135,7 +131,9 @@ func downloadVersion(results []*api.Result, creds *credentials.Credentials) {
 		}
 
 		if !found {
-			fmt.Printf("Could not find version %s for mod %s\n", re, result.Name)
+			return fmt.Errorf("Could not find version %s for mod %s", re, result.Name)
 		}
 	}
+
+	return nil
 }

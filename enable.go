@@ -4,6 +4,6 @@ import (
 	"fmt"
 )
 
-func enable(args []string) {
-	fmt.Println("enable not implemented")
+func enable(options []string) error {
+	return fmt.Errorf("enable not implemented")
 }

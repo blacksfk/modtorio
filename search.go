@@ -13,23 +13,20 @@ const (
 
 // search for one or more mods.
 // the search term is compiled as a regular expression
-func search(args []string) {
+func search(options []string) error {
 	var e error
 	var re *regexp.Regexp
 	var cmp func(*regexp.Regexp, *api.Result) bool
-	count := len(args)
+	count := len(options)
 
-	switch args[0] {
+	switch options[0] {
 	// determine search type
 	case "--tag":
 		cmp = matchTag
 		fallthrough
 	case "--owner":
 		if count < MIN_OPTION_ARGS {
-			fmt.Printf("Not enough arguments to search %s\n", args[0])
-			help()
-
-			return
+			return fmt.Errorf("Not enough arguments to search %s", options[0])
 		}
 
 		if cmp == nil {
@@ -38,24 +35,20 @@ func search(args []string) {
 			cmp = matchOwner
 		}
 
-		re, e = regexp.Compile(REGEXP_FLAGS + args[1])
+		re, e = regexp.Compile(REGEXP_FLAGS + options[1])
 	default:
 		cmp = matchName
-		re, e = regexp.Compile(REGEXP_FLAGS + args[0])
+		re, e = regexp.Compile(REGEXP_FLAGS + options[0])
 	}
 
 	if e != nil {
-		fmt.Println(e)
-
-		return
+		return e
 	}
 
 	results, e := api.GetAll()
 
 	if e != nil {
-		fmt.Println(e)
-
-		return
+		return e
 	}
 
 	matches := 0
@@ -72,6 +65,8 @@ func search(args []string) {
 	// print the ending divider and the match count
 	fmt.Println("-------------")
 	fmt.Printf("Found %d mods matching %v\n", matches, re)
+
+	return nil
 }
 
 // compare the search term with the name and title properties

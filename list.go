@@ -8,34 +8,29 @@ const (
 	H_SEP = "-"
 )
 
-func list(args []string) {
-	if len(args) > 0 {
-		switch args[0] {
+func list(options []string) error {
+	if len(options) > 0 {
+		switch options[0] {
 		case "--all":
-			listAll()
+			return listAll()
 		case "--enabled":
-			listMods(true)
+			return listMods(true)
 		case "--disabled":
-			listMods(false)
+			return listMods(false)
 		default:
-			fmt.Printf("Unknown option %s for command list\n", args[0])
-			help()
+			return fmt.Errorf("Unknown option %s for command list", options[0])
 		}
-
-		return
 	}
 
-	// if no args default to all()
-	listAll()
+	// if no options default to all()
+	return listAll()
 }
 
-func listMods(enabled bool) {
+func listMods(enabled bool) error {
 	list, e := readModList(dir)
 
 	if e != nil {
-		fmt.Println(e)
-
-		return
+		return e
 	}
 
 	for _, mod := range list.Mods {
@@ -47,15 +42,16 @@ func listMods(enabled bool) {
 			fmt.Println(mod.Name)
 		}
 	}
+
+	return nil
 }
 
-func listAll() {
+// display all mods by name (column 1) and their status (column 2)
+func listAll() error {
 	list, e := readModList(dir)
 
 	if e != nil {
-		fmt.Println(e)
-
-		return
+		return e
 	}
 
 	// default to 4 for "Name" header
@@ -92,6 +88,8 @@ func listAll() {
 	printStringTimes(H_SEP, hSepCount)
 	fmt.Print("|")
 	fmt.Println()
+
+	return nil
 }
 
 func printStringTimes(s string, times int) {

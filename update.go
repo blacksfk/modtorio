@@ -4,6 +4,6 @@ import (
 	"fmt"
 )
 
-func update(args []string) {
-	fmt.Println("update not implemented")
+func update(options []string) error {
+	return fmt.Errorf("update not implemented")
 }
