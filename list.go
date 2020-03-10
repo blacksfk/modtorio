@@ -8,7 +8,48 @@ const (
 	H_SEP = "-"
 )
 
-func listInstalled(args []string) {
+func list(args []string) {
+	if len(args) > 0 {
+		switch args[0] {
+		case "--all":
+			listAll()
+		case "--enabled":
+			listMods(true)
+		case "--disabled":
+			listMods(false)
+		default:
+			fmt.Printf("Unknown option %s for command list\n", args[0])
+			help()
+		}
+
+		return
+	}
+
+	// if no args default to all()
+	listAll()
+}
+
+func listMods(enabled bool) {
+	list, e := readModList(dir)
+
+	if e != nil {
+		fmt.Println(e)
+
+		return
+	}
+
+	for _, mod := range list.Mods {
+		// print if:
+		// the mod is enabled and list enabled mods (enabled = true)
+		// or:
+		// the mod is disabled and list disabled mods (enabled = false)
+		if enabled && mod.Enabled || !enabled && !mod.Enabled {
+			fmt.Println(mod.Name)
+		}
+	}
+}
+
+func listAll() {
 	list, e := readModList(dir)
 
 	if e != nil {

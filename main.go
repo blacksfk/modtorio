@@ -15,6 +15,8 @@ const (
 	MIN_ARGS = 2          // including program name
 	FLAG_DIR = "dir"      // name of the working directory flag
 	FLAG_VER = "factorio" // name of the factorio version flag
+	RAW_FLAG_DIR = "--" + FLAG_DIR
+	RAW_FLAG_VER = "--" + FLAG_VER
 	DEF_DIR  = "./"       // default to the current directory
 	DEF_VER  = "*"        // default to match any version
 )
@@ -37,9 +39,7 @@ var commands []command = []command{
 	{"update", 0, update},
 	{"enable", 1, enable},
 	{"disable", 1, disable},
-	{"list-installed", 0, listInstalled},
-	{"list-enabled", 0, listEnabled},
-	{"list-disabled", 0, listDisabled},
+	{"list", 0, list},
 }
 
 // package wide flag values
@@ -48,13 +48,6 @@ var dir, fVer string
 // main function.
 // command argument handling
 func main() {
-	if len(os.Args) < MIN_ARGS {
-		fmt.Println("No command specified.\n")
-		help()
-
-		return
-	}
-
 	// define flags
 	flag.StringVar(&dir, FLAG_DIR, DEF_DIR, "Working directory")
 	flag.StringVar(&fVer, FLAG_VER, DEF_VER, "Factorio version")
@@ -62,34 +55,29 @@ func main() {
 	// parse the flags
 	flag.Parse()
 
-	// subtract 1 to compensate for program name
-	argv := os.Args[1:]
-	skip := 0
+	// validate all arguments and extract the command its options
+	cmd, options, e := validate(os.Args)
 
-	// loop and subtract argc for each flag argument
-	for _, arg := range argv {
-		if arg == "--"+FLAG_DIR || arg == "--"+FLAG_VER {
-			// skip 2; one for flag, one for the flag's value
-			skip += 2
-		}
+	if e != nil {
+		fmt.Println(e)
+
+		return
 	}
 
-	cmd := argv[skip]
-	// subtract the command arg and flag args
-	argc := len(argv) - skip - 1
+	optionCount := len(options)
 	found := false
 
 	// loop through all the commands and check for a match
 	for _, c := range commands {
 		if c.cmp(cmd) {
-			if argc >= c.min {
+			if optionCount >= c.min {
 				found = true
-				c.fn(argv)
+				c.fn(options)
 
 				break
 			} else {
 				// not enough args given for the command
-				fmt.Printf("Not enough arguments for command: %s. Minimum: %d, Found: %d\n", c.name, c.min, argc)
+				fmt.Printf("Not enough arguments for command: %s. Minimum: %d, Found: %d\n", c.name, c.min, optionCount)
 				help()
 
 				return
@@ -101,6 +89,42 @@ func main() {
 		fmt.Printf("Invalid command: %s\n", cmd)
 		help()
 	}
+}
+
+// validate the arguments, extract the command and any options
+func validate(args []string) (string, []string, error) {
+	var options []string
+
+	// check if at least MIN_ARGS were provided
+	// eg. modtorio list
+	if len(args) < MIN_ARGS {
+		return "", options, fmt.Errorf("No command specified\n")
+	}
+
+	skip := 0
+	argv := args[1:] // skip program name
+
+	for _, arg := range argv {
+		if arg == RAW_FLAG_DIR || arg == RAW_FLAG_VER {
+			// skip 2; one for flag, one for the flag's value
+			skip += 2
+		}
+	}
+
+	argc := len(argv)
+
+	// check if something was provided after the flags
+	if argc <= skip {
+		return "", options, fmt.Errorf("Invalid arguments: %v", argv)
+	}
+
+	// check if options were provided after the command string
+	// so skip an extra
+	if skip + 1 < argc {
+		options = argv[skip+1:]
+	}
+
+	return argv[skip], options, nil
 }
 
 // display help for program usage
@@ -153,24 +177,17 @@ func help() {
 	fmt.Printf("\t\tmodtorio disable bob* pyhightech ^angel\n")
 	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods disable bob*\n")
 
-	// list-installed command
-	fmt.Printf("list-installed\n")
-	fmt.Printf("\tList all mods with their status.\n")
+	// list command
+	fmt.Printf("list\n")
+	fmt.Printf("\tList mods.\n")
+	fmt.Printf("\tOptions:\n")
+	fmt.Printf("\t\t--all\tList all installed mods (default)\n")
+	fmt.Printf("\t\t--enabled\tList all enabled mods\n")
+	fmt.Printf("\t\t--disabled\tList all disabled mods\n")
 	fmt.Printf("\tExamples:\n")
-	fmt.Printf("\t\tmodtorio list-installed\n")
-	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods list-installed\n")
-
-	// list-enabled command
-	fmt.Printf("list-enabled\n")
-	fmt.Printf("\tList all enabled mods.\n")
-	fmt.Printf("\tExamples:\n")
-	fmt.Printf("\t\tmodtorio list-enabled\n")
-	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods list-enabled\n")
-
-	// list-disabled command
-	fmt.Printf("list-disabled\n")
-	fmt.Printf("\tList all disabled mods.\n")
-	fmt.Printf("\tExamples:\n")
-	fmt.Printf("\t\tmodtorio list-disabled\n")
-	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods list-disabled\n")
+	fmt.Printf("\t\tmodtorio list\n")
+	fmt.Printf("\t\tmodtorio list --all\n")
+	fmt.Printf("\t\tmodtorio list --enabled\n")
+	fmt.Printf("\t\tmodtorio list --disabled\n")
+	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods list\n")
 }
