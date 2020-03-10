@@ -50,14 +50,18 @@ var commands []Command = []Command{
 }
 
 // package wide flag values
-var dir, fVer string
+type ModtorioFlags struct {
+	dir, fVer string
+}
+
+var FLAGS ModtorioFlags = ModtorioFlags{}
 
 // main function.
 // command argument handling
 func main() {
 	// define flags
-	flag.StringVar(&dir, FLAG_DIR, DEF_DIR, "Working directory")
-	flag.StringVar(&fVer, FLAG_VER, DEF_VER, "Factorio version")
+	flag.StringVar(&FLAGS.dir, FLAG_DIR, DEF_DIR, "Working directory")
+	flag.StringVar(&FLAGS.fVer, FLAG_VER, DEF_VER, "Factorio version")
 
 	// parse the flags
 	flag.Parse()

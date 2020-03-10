@@ -52,7 +52,7 @@ func download(options []string) error {
 		return e
 	}
 
-	if fVer == DEF_VER {
+	if FLAGS.fVer == DEF_VER {
 		// latest
 		downloadLatest(results, creds)
 
@@ -107,7 +107,7 @@ func downloadLatest(results []*api.Result, creds *credentials.Credentials) {
 
 // download a the latest release of the specified FACTORIO version
 func downloadVersion(results []*api.Result, creds *credentials.Credentials) error {
-	re := regexp.MustCompile(fVer)
+	re := regexp.MustCompile(FLAGS.fVer)
 
 	for _, result := range results {
 		found := false
