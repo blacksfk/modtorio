@@ -15,8 +15,8 @@ type ModList struct {
 }
 
 type Mod struct {
-	Name string `json:"name"`
-	Enabled bool `json:"enabled"`
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
 }
 
 func readModList(dir string) (*ModList, error) {
