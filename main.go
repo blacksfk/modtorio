@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	MIN_ARGS = 2          // including program name
 	FLAG_DIR = "dir"      // name of the working directory flag
 	FLAG_VER = "factorio" // name of the factorio version flag
 	DEF_DIR  = "./"       // default to the current directory
@@ -47,6 +48,13 @@ var dir, fVer string
 // main function.
 // command argument handling
 func main() {
+	if len(os.Args) < MIN_ARGS {
+		fmt.Println("No command specified.\n")
+		help()
+
+		return
+	}
+
 	// define flags
 	flag.StringVar(&dir, FLAG_DIR, DEF_DIR, "Working directory")
 	flag.StringVar(&fVer, FLAG_VER, DEF_VER, "Factorio version")
