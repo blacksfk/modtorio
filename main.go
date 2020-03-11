@@ -66,7 +66,7 @@ func main() {
 	// parse the flags
 	flag.Parse()
 
-	// validate all arguments and extract the command its options
+	// validate all arguments and extract the command and its options
 	cmd, options, e := validate(os.Args)
 
 	if e != nil {
@@ -122,21 +122,21 @@ func validate(args []string) (string, []string, error) {
 
 func matchCommand(name string, options []string) error {
 	optionCount := len(options)
-	found := false
 
+	// loop through all defined commands
 	for _, cmd := range commands {
 		if cmd.cmp(name) {
+			// match found, compare minimum arguments
 			if optionCount >= cmd.min {
+				// minimum arguments found, call the handler
 				return cmd.fn(options)
 			} else {
+				// argument count does not meet the minimum
 				return fmt.Errorf("Not enough arguments for command: %s. Minimum: %d, Found: %d", cmd.name, cmd.min, optionCount)
 			}
 		}
 	}
 
-	if !found {
-		return fmt.Errorf("Invalid command: %s\n", name)
-	}
-
-	return nil
+	// no match found
+	return fmt.Errorf("Invalid command: %s", name)
 }
