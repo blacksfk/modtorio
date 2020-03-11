@@ -104,7 +104,7 @@ func helpDisable() {
 func helpList() {
 	// list command
 	fmt.Printf("list\n")
-	fmt.Printf("\tList mods.\n")
+	fmt.Printf("\tList mods. Base mod is intentionally left out as it should not be manipulated.\n")
 	fmt.Printf("\tOptions:\n")
 	fmt.Printf("\t\t--all\tList all installed mods (default)\n")
 	fmt.Printf("\t\t--enabled\tList all enabled mods\n")
