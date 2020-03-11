@@ -1,4 +1,4 @@
-package main
+package modlist
 
 import (
 	"encoding/json"
@@ -15,17 +15,39 @@ type ModList struct {
 	Mods []Mod `json:"mods"`
 }
 
+// write the mod list in the specified directory
+func (list *ModList) Write(dir string) error {
+	path := genPath(dir)
+	bytes, e := json.Marshal(list)
+
+	if e != nil {
+		return e
+	}
+
+	// base mod should not be present, so append it
+	list.Mods = append(list.Mods, base)
+
+	return ioutil.WriteFile(path, bytes, MODE)
+}
+
 type Mod struct {
 	Name    string `json:"name"`
 	Enabled bool   `json:"enabled"`
+	// the archive data should not be written to mod-list.json,
+	// so keep it hidden with tag: "-"
+	Archive *Archive `json:"-"`
+}
+
+type Archive struct {
+	Name, Version string
 }
 
 // base mod should always be present in the file,
 // but does not have an archive. so it is removed before
-// a readModList is returned, and is added during a writeModList
-var base Mod = Mod{"base", true}
+// a read is returned, and is added during a write
+var base Mod = Mod{"base", true, nil}
 
-func readModList(dir string) (*ModList, error) {
+func Read(dir string) (*ModList, error) {
 	path := genPath(dir)
 	bytes, e := ioutil.ReadFile(path)
 
@@ -71,20 +93,6 @@ func readModList(dir string) (*ModList, error) {
 
 	// base mod removed (or new, empty list)
 	return list, nil
-}
-
-func writeModList(list *ModList, dir string) error {
-	path := genPath(dir)
-	bytes, e := json.Marshal(list)
-
-	if e != nil {
-		return e
-	}
-
-	// base mod should not be present, so append it
-	list.Mods = append(list.Mods, base)
-
-	return ioutil.WriteFile(path, bytes, MODE)
 }
 
 func genPath(dir string) string {

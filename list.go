@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"modtorio/modlist"
 )
 
 const (
@@ -27,7 +28,7 @@ func list(options []string) error {
 }
 
 func listMods(enabled bool) error {
-	list, e := readModList(FLAGS.dir)
+	list, e := modlist.Read(FLAGS.dir)
 
 	if e != nil {
 		return e
@@ -48,7 +49,7 @@ func listMods(enabled bool) error {
 
 // display all mods by name (column 1) and their status (column 2)
 func listAll() error {
-	list, e := readModList(FLAGS.dir)
+	list, e := modlist.Read(FLAGS.dir)
 
 	if e != nil {
 		return e
