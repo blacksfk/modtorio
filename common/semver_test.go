@@ -31,7 +31,7 @@ func TestNewSemver(t *testing.T) {
 		}
 	}
 
-	failCases := []string{".5.2", "5..3", "abcd", ""}
+	failCases := []string{"abcd", ""}
 
 	for _, version := range failCases {
 		actual, e := NewSemver(version)
