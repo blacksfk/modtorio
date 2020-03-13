@@ -10,17 +10,21 @@ import (
 )
 
 const (
-	MIN_MATCHES       = 2 // full, major required, minor and patch optional
+	MIN_MATCHES       = 2 // full and major required, minor and patch optional
 	MIN_MATCHES_MINOR = MIN_MATCHES + 1
 	MIN_MATCHES_PATCH = MIN_MATCHES_MINOR + 1
 	MATCH_ANY         = "-1.-1.-1" // match any semantic version
 )
 
 // extract a semantic version from a string
-var re *regexp.Regexp = regexp.MustCompile(`(\d+)(?:\.(\d+))?(?:\.(\d+))?`)
+var re *regexp.Regexp = regexp.MustCompile(`(-?\d+)(?:\.(-?\d+))?(?:\.(-?\d+))?`)
 
 type Semver struct {
 	Major, Minor, Patch int
+}
+
+func (s *Semver) String() string {
+	return fmt.Sprintf("%d.%d.%d", s.Major, s.Minor, s.Patch)
 }
 
 // Compare two Semantic Versions. Returns the result of cmp(a, b)
@@ -95,7 +99,9 @@ func NewSemver(version string) (*Semver, error) {
 		return nil, e
 	}
 
-	if numMatches >= MIN_MATCHES_MINOR {
+	// optional capture groups result in an empty match,
+	// so ensure there is something to convert
+	if numMatches >= MIN_MATCHES_MINOR && matches[2] != "" {
 		// minor version present
 		s.Minor, e = strconv.Atoi(matches[2])
 
@@ -104,7 +110,7 @@ func NewSemver(version string) (*Semver, error) {
 		}
 	}
 
-	if numMatches >= MIN_MATCHES_PATCH {
+	if numMatches >= MIN_MATCHES_PATCH && matches[3] != ""{
 		// patch version present
 		s.Patch, e = strconv.Atoi(matches[3])
 
