@@ -58,7 +58,7 @@ func search(options []string) error {
 			// increment the match count and print a divider and mod information
 			matches++
 			fmt.Println("-------------")
-			fmt.Println(result.String())
+			fmt.Println(result)
 		}
 	}
 
