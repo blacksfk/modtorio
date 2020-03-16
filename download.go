@@ -7,43 +7,17 @@ import (
 	"modtorio/api"
 	"modtorio/credentials"
 	"os"
-	"regexp"
 	"strings"
 	"syscall"
 )
 
 const (
-	MAX_LOGIN_ATTEMPS = 5
+	MAX_LOGIN_ATTEMPTS = 5
 )
 
 func download(options []string) error {
-	var creds *credentials.Credentials
-	var e error
-	attempts := 0
-
-	// loop until the login is successful or until MAX_LOGIN_ATTEMPTS is reached
-	for ; attempts < MAX_LOGIN_ATTEMPS; attempts++ {
-		// prompt the user for their credentials
-		creds, e = promptForCreds()
-
-		if e != nil {
-			// something went wrong with the input
-			return e
-		}
-
-		e = api.Login(creds)
-
-		if e != nil {
-			fmt.Println(e)
-		} else {
-			// logged in successfully
-			break
-		}
-	}
-
-	if attempts >= MAX_LOGIN_ATTEMPS {
-		return fmt.Errorf("Maximum login attempts exceeded")
-	}
+	// attempt login of the user
+	creds, e := attemptLogin()
 
 	// get the mod results for each mod
 	results, e := api.GetAll(options...)
@@ -52,15 +26,52 @@ func download(options []string) error {
 		return e
 	}
 
-	if FLAGS.fVer == DEF_VER {
-		// latest
-		downloadLatest(results, creds)
+	for _, result := range results {
+		found := false
 
-		return nil
+		for i := len(result.Releases) - 1; i >= 0; i-- {
+			if result.Releases[i].CmpVersion(FLAGS.factorio) == 0 {
+				found = true
+				e = result.Releases[i].Download(FLAGS.dir, creds)
+
+				if e != nil {
+					// don't return on download error
+					// continue processing rest of the downloads
+					fmt.Printf("Error downloading %s: %v\n", result.Name, e)
+				}
+			}
+		}
+
+		if !found {
+			fmt.Printf("No matching factorio version (%v) found for mod %s\n", FLAGS.factorio, result.Name)
+		}
 	}
 
-	// a version was specified
-	return downloadVersion(results, creds)
+	return nil
+}
+
+func attemptLogin() (*credentials.Credentials, error) {
+	attempts := 0
+
+	for ; attempts < MAX_LOGIN_ATTEMPTS; attempts++ {
+		creds, e := promptForCreds()
+
+		if e != nil {
+			return nil, e
+		}
+
+		e = api.Login(creds)
+
+		if e != nil {
+			fmt.Println(e)
+		} else {
+			// logged in successfully
+			return creds, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Maximum login attempts reached")
+
 }
 
 // prompt the user for their login credentials
@@ -91,7 +102,7 @@ func promptForCreds() (*credentials.Credentials, error) {
 	return credentials.NewCredentials(strings.TrimRight(username, "\n"), string(bytes)), nil
 }
 
-// download the latest release of a mod
+/*// download the latest release of a mod
 func downloadLatest(results []*api.Result, creds *credentials.Credentials) {
 	for _, result := range results {
 		// latest release should be the last in the array
@@ -136,4 +147,4 @@ func downloadVersion(results []*api.Result, creds *credentials.Credentials) erro
 	}
 
 	return nil
-}
+}*/
