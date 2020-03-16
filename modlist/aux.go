@@ -2,6 +2,7 @@ package modlist
 
 import (
 	"fmt"
+	"regexp"
 )
 
 // add mods to the list and enable them
@@ -29,10 +30,16 @@ func SetStatus(dir string, enabled bool, names []string) error {
 	}
 
 	for _, name := range names {
+		re, e := regexp.Compile(name)
+
+		if e != nil {
+			return e
+		}
+
 		found := false
 
 		for _, mod := range list.Mods {
-			if name == mod.Name {
+			if re.MatchString(mod.Name) {
 				mod.Enabled = enabled
 				found = true
 			}
