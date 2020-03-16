@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"modtorio/modlist"
 )
 
 func enable(options []string) error {
-	return fmt.Errorf("enable not implemented")
+	return modlist.SetStatus(FLAGS.dir, true, options)
 }
