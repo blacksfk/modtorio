@@ -3,9 +3,9 @@ package api
 import (
 	"fmt"
 	"io/ioutil"
+	"modtorio/common"
 	"modtorio/credentials"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -37,9 +37,9 @@ type Result struct {
 	Title, Changelog, Created_at string
 	Description, Github_path     string
 	Category, Homepage           string
-	Latest_release               Release
-	Releases                     []Release
-	Tag                          []Tag
+	Latest_release               *Release
+	Releases                     []*Release
+	Tag                          []*Tag
 }
 
 // pretty print a mod's information
@@ -51,18 +51,25 @@ func (r *Result) String() string {
 type Release struct {
 	Download_url, File_name    string
 	Released_at, Version, sha1 string
+	Semver                     *common.Semver
 	Info_json                  struct {
 		Factorio_version string
+		Semver           *common.Semver
 	}
 }
 
 // compare release version
-func (r *Release) CmpVersion(re *regexp.Regexp) bool {
-	return re.MatchString(r.Info_json.Factorio_version)
+func (r *Release) CmpVersion(semver *common.Semver) int {
+	return r.Semver.Cmp(semver)
+}
+
+// compare release factorio version
+func (r *Release) CmpFactorioVersion(semver *common.Semver) int {
+	return r.Info_json.Semver.Cmp(semver)
 }
 
 // download a release
-func (r *Release) Download(creds *credentials.Credentials) error {
+func (r *Release) Download(dir string, creds *credentials.Credentials) error {
 	b := strings.Builder{}
 	b.WriteString(URL_DL)
 	b.WriteString(r.Download_url)
@@ -83,13 +90,34 @@ func (r *Release) Download(creds *credentials.Credentials) error {
 		return e
 	}
 
-	e = ioutil.WriteFile(r.File_name, body, MODE)
+	if dir[len(dir)-1] != '/' {
+		// append a slash
+		dir += "/"
+	}
+
+	path := dir + r.File_name
+	e = ioutil.WriteFile(path, body, MODE)
 
 	if e != nil {
 		return e
 	}
 
 	return nil
+}
+
+// parse the version and factorio_version as semantic versions
+func (r *Release) ParseVersions() error {
+	var e error
+
+	r.Semver, e = common.NewSemver(r.Version)
+
+	if e != nil {
+		return e
+	}
+
+	r.Info_json.Semver, e = common.NewSemver(r.Info_json.Factorio_version)
+
+	return e
 }
 
 // mod tags (refer to array above)

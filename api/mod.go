@@ -71,6 +71,17 @@ func GetAll(names ...string) ([]*Result, error) {
 		return nil, e
 	}
 
+	// parse the factorio version of each release as a semver
+	for _, result := range modList.Results {
+		for _, release := range result.Releases {
+			e = release.ParseVersions()
+
+			if e != nil {
+				return nil, e
+			}
+		}
+	}
+
 	// no need to return pagination data
 	return modList.Results, nil
 }
