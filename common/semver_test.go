@@ -8,7 +8,7 @@ func TestNewSemver(t *testing.T) {
 	}
 
 	type PassCase struct {
-		version string
+		version  string
 		expected Expected
 	}
 
@@ -43,12 +43,12 @@ func TestNewSemver(t *testing.T) {
 }
 
 func TestCmp(t *testing.T) {
-	cases := []struct{
+	cases := []struct {
 		a, b, expected int
 	}{
 		{0, 1, -1}, // a < b
-		{1, 0, 1}, // a > b
-		{3, 3, 0}, // a == b
+		{1, 0, 1},  // a > b
+		{3, 3, 0},  // a == b
 	}
 
 	for _, c := range cases {
@@ -61,8 +61,8 @@ func TestCmp(t *testing.T) {
 }
 
 func TestSemverCmp(t *testing.T) {
-	cases := []struct{
-		a, b string
+	cases := []struct {
+		a, b     string
 		expected int
 	}{
 		{"1.1.1", "2.2.2", -1},

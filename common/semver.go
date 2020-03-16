@@ -110,7 +110,7 @@ func NewSemver(version string) (*Semver, error) {
 		}
 	}
 
-	if numMatches >= MIN_MATCHES_PATCH && matches[3] != ""{
+	if numMatches >= MIN_MATCHES_PATCH && matches[3] != "" {
 		// patch version present
 		s.Patch, e = strconv.Atoi(matches[3])
 
