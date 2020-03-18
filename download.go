@@ -16,9 +16,6 @@ const (
 )
 
 func download(options []string) error {
-	// attempt login of the user
-	creds, e := attemptLogin()
-
 	// get the mod results for each mod
 	results, e := api.GetAll(options...)
 
@@ -26,19 +23,16 @@ func download(options []string) error {
 		return e
 	}
 
+	var downloads []*api.Release
+
 	for _, result := range results {
 		found := false
 
 		for i := len(result.Releases) - 1; i >= 0; i-- {
-			if result.Releases[i].CmpVersion(FLAGS.factorio) == 0 {
+			if result.Releases[i].CmpFactorioVersion(FLAGS.factorio) == 0 {
 				found = true
-				e = result.Releases[i].Download(FLAGS.dir, creds)
-
-				if e != nil {
-					// don't return on download error
-					// continue processing rest of the downloads
-					fmt.Printf("Error downloading %s: %v\n", result.Name, e)
-				}
+				downloads = append(downloads, result.Releases[i])
+				break
 			}
 		}
 
@@ -47,7 +41,7 @@ func download(options []string) error {
 		}
 	}
 
-	return nil
+	return downloadReleases(downloads)
 }
 
 func attemptLogin() (*credentials.Credentials, error) {
@@ -102,49 +96,55 @@ func promptForCreds() (*credentials.Credentials, error) {
 	return credentials.NewCredentials(strings.TrimRight(username, "\n"), string(bytes)), nil
 }
 
-/*// download the latest release of a mod
-func downloadLatest(results []*api.Result, creds *credentials.Credentials) {
-	for _, result := range results {
-		// latest release should be the last in the array
-		e := result.Releases[len(result.Releases)-1].Download(creds)
+// Download the releases. Authenticates the user prior to downloading.
+func downloadReleases(releases []*api.Release) error {
+	count := len(releases)
+
+	if count == 0 {
+		return fmt.Errorf("Nothing to download")
+	}
+
+	// print a summary of the releases to be downloaded
+	fmt.Printf("\nDownloads (%d):", count)
+
+	for i := 0; i < count; i++ {
+		fmt.Printf(" %s", releases[i].File_name)
+	}
+
+	// prompt the user for confirmation of the releases to be downloaded
+	stdin := bufio.NewReader(os.Stdin)
+	fmt.Printf("\n\nContinue? (Y/n): ")
+	answer, e := stdin.ReadString('\n')
+
+	if e != nil {
+		return e
+	}
+
+	if answer[0] != '\n' && strings.ToLower(answer)[0] != 'y' {
+		fmt.Println("Downloads cancelled")
+
+		return nil
+	}
+
+	// log the user in
+	creds, e := attemptLogin()
+
+	if e != nil {
+		return e
+	}
+
+	fmt.Println()
+
+	// download all of the releases
+	for i := 0; i < count; i++ {
+		fmt.Printf("Downloading %s...", releases[i].File_name)
+		e = releases[i].Download(FLAGS.dir, creds)
+		fmt.Println("done")
 
 		if e != nil {
-			// don't return on any error
-			// continue processing rest of the downloads
-			fmt.Println(e)
-		}
-	}
-}
-
-// download a the latest release of the specified FACTORIO version
-func downloadVersion(results []*api.Result, creds *credentials.Credentials) error {
-	re := regexp.MustCompile(FLAGS.fVer)
-
-	for _, result := range results {
-		found := false
-
-		// start from the end to find the latest release for
-		// the specified factorio version
-		for i := len(result.Releases) - 1; i >= 0; i-- {
-			if result.Releases[i].CmpVersion(re) {
-				found = true
-				e := result.Releases[i].Download(creds)
-
-				if e != nil {
-					// don't return on any error
-					// continue processing rest of the downloads
-					fmt.Println(e)
-				}
-
-				// found the latest release so bust out of the inner loop
-				break
-			}
-		}
-
-		if !found {
-			return fmt.Errorf("Could not find version %s for mod %s", re, result.Name)
+			return e
 		}
 	}
 
 	return nil
-}*/
+}
