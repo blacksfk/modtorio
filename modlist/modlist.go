@@ -27,14 +27,15 @@ type ModList struct {
 // write the mod list in the specified directory
 func (list *ModList) Write(dir string) error {
 	path := genPath(dir)
+
+	// base mod should not be in the list, so append it
+	list.Mods = append(list.Mods, base)
+
 	bytes, e := json.Marshal(list)
 
 	if e != nil {
 		return e
 	}
-
-	// base mod should not be in the list, so append it
-	list.Mods = append(list.Mods, base)
 
 	return ioutil.WriteFile(path, bytes, MODE)
 }
