@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"modtorio/api"
 	"modtorio/credentials"
+	"modtorio/modlist"
 	"os"
 	"strings"
 	"syscall"
@@ -24,6 +25,7 @@ func download(options []string) error {
 	}
 
 	var downloads []*api.Release
+	var toBeEnabled []string
 
 	for _, result := range results {
 		found := false
@@ -32,6 +34,7 @@ func download(options []string) error {
 			if result.Releases[i].CmpFactorioVersion(FLAGS.factorio) == 0 {
 				found = true
 				downloads = append(downloads, result.Releases[i])
+				toBeEnabled = append(toBeEnabled, result.Name)
 				break
 			}
 		}
@@ -41,7 +44,14 @@ func download(options []string) error {
 		}
 	}
 
-	return downloadReleases(downloads)
+	e = downloadReleases(downloads)
+
+	if e != nil {
+		return e
+	}
+
+	// enable (or add) all downloaded releases
+	return modlist.Add(FLAGS.dir, toBeEnabled...)
 }
 
 func attemptLogin() (*credentials.Credentials, error) {
