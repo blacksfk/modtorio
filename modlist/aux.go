@@ -14,8 +14,22 @@ func Add(dir string, names ...string) error {
 	}
 
 	for _, name := range names {
-		mod := &Mod{name, true, nil}
-		list.Mods = append(list.Mods, mod)
+		found := false
+
+		for _, mod := range list.Mods {
+			if mod.Name == name {
+				// mod already exists, enable it
+				found = true
+				mod.Enabled = true
+				break
+			}
+		}
+
+		if !found {
+			// mod does not exist, add and enable it
+			newMod := &Mod{name, true, nil}
+			list.Mods = append(list.Mods, newMod)
+		}
 	}
 
 	return list.Write(dir)
