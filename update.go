@@ -103,23 +103,5 @@ func update(options []string) error {
 	}
 
 	// last, attempt to login and download the releases
-	dlCount := len(downloads)
-
-	if dlCount > 0 {
-		creds, e := attemptLogin()
-
-		if e != nil {
-			return e
-		}
-
-		for i := 0; i < dlCount; i++ {
-			e = downloads[i].Download(FLAGS.dir, creds)
-
-			if e != nil {
-				return e
-			}
-		}
-	}
-
-	return nil
+	return downloadReleases(downloads)
 }
