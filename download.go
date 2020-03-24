@@ -55,10 +55,18 @@ func download(options []string) error {
 }
 
 func attemptLogin() (*credentials.Credentials, error) {
+	creds, e := credentials.FromCache()
+
+	if e == nil {
+		// credentials obtained from cache
+		return creds, nil
+	}
+
+	// something went wrong with the cached credentials
 	attempts := 0
 
 	for ; attempts < MAX_LOGIN_ATTEMPTS; attempts++ {
-		creds, e := promptForCreds()
+		creds, e = promptForCreds()
 
 		if e != nil {
 			return nil, e
@@ -69,7 +77,9 @@ func attemptLogin() (*credentials.Credentials, error) {
 		if e != nil {
 			fmt.Println(e)
 		} else {
-			// logged in successfully
+			// logged in successfully, cache creds
+			creds.ToCache()
+
 			return creds, nil
 		}
 	}
