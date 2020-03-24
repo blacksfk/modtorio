@@ -26,16 +26,16 @@ func (mr *ModResult) FindRelease(factorio *common.Semver) *api.Release {
 	return nil
 }
 
-func update(options []string) error {
+func update(flags *ModtorioFlags, options []string) error {
 	// first, get a list of mods
-	list, e := modlist.Read(FLAGS.dir)
+	list, e := modlist.Read(flags.dir)
 
 	if e != nil {
 		return e
 	}
 
 	// then scour the directory for the files
-	e = list.FindArchives(FLAGS.dir)
+	e = list.FindArchives(flags.dir)
 
 	if e != nil {
 		return e
@@ -95,7 +95,7 @@ func update(options []string) error {
 	var downloads []*api.Release
 
 	for _, mr := range modResults {
-		release := mr.FindRelease(FLAGS.factorio)
+		release := mr.FindRelease(flags.factorio)
 
 		if release != nil {
 			downloads = append(downloads, release)
@@ -103,5 +103,5 @@ func update(options []string) error {
 	}
 
 	// last, attempt to login and download the releases
-	return downloadReleases(downloads)
+	return downloadReleases(flags.dir, downloads)
 }

@@ -16,7 +16,7 @@ const (
 	MAX_LOGIN_ATTEMPTS = 5
 )
 
-func download(options []string) error {
+func download(flags *ModtorioFlags, options []string) error {
 	// get the mod results for each mod
 	results, e := api.GetAll(options...)
 
@@ -31,7 +31,7 @@ func download(options []string) error {
 		found := false
 
 		for i := len(result.Releases) - 1; i >= 0; i-- {
-			if result.Releases[i].CmpFactorioVersion(FLAGS.factorio) == 0 {
+			if result.Releases[i].CmpFactorioVersion(flags.factorio) == 0 {
 				found = true
 				downloads = append(downloads, result.Releases[i])
 				toBeEnabled = append(toBeEnabled, result.Name)
@@ -40,18 +40,18 @@ func download(options []string) error {
 		}
 
 		if !found {
-			fmt.Printf("No matching factorio version (%v) found for mod %s\n", FLAGS.factorio, result.Name)
+			fmt.Printf("No matching factorio version (%v) found for mod %s\n", flags.factorio, result.Name)
 		}
 	}
 
-	e = downloadReleases(downloads)
+	e = downloadReleases(flags.dir, downloads)
 
 	if e != nil {
 		return e
 	}
 
 	// enable (or add) all downloaded releases
-	return modlist.Add(FLAGS.dir, toBeEnabled...)
+	return modlist.Add(flags.dir, toBeEnabled...)
 }
 
 func attemptLogin() (*credentials.Credentials, error) {
@@ -117,7 +117,7 @@ func promptForCreds() (*credentials.Credentials, error) {
 }
 
 // Download the releases. Authenticates the user prior to downloading.
-func downloadReleases(releases []*api.Release) error {
+func downloadReleases(dir string, releases []*api.Release) error {
 	count := len(releases)
 
 	if count == 0 {
@@ -158,7 +158,7 @@ func downloadReleases(releases []*api.Release) error {
 	// download all of the releases
 	for i := 0; i < count; i++ {
 		fmt.Printf("Downloading %s...", releases[i].File_name)
-		e = releases[i].Download(FLAGS.dir, creds)
+		e = releases[i].Download(dir, creds)
 		fmt.Println("done")
 
 		if e != nil {

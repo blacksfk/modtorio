@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func help(options []string) error {
+func help(flags *ModtorioFlags, options []string) error {
 	if len(options) > 0 {
 		switch options[0] {
 		case CMD_SEARCH:
@@ -87,7 +87,7 @@ func helpEnable() {
 	fmt.Printf("\tEnable mods. Arguments are compiled as regular expressions.\n")
 	fmt.Printf("\tExamples:\n")
 	fmt.Printf("\t\tmodtorio enable bob.* pyhightech ^angel\n")
-	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods enable bob*\n")
+	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods enable bob.*\n")
 }
 
 func helpDisable() {
@@ -96,7 +96,7 @@ func helpDisable() {
 	fmt.Printf("\tDisable mods. Arguments are compiled as regular expressions.\n")
 	fmt.Printf("\tExamples:\n")
 	fmt.Printf("\t\tmodtorio disable bob.* pyhightech ^angel\n")
-	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods disable bob*\n")
+	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods disable bob.*\n")
 }
 
 func helpList() {

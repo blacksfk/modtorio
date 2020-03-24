@@ -32,7 +32,7 @@ const (
 type Command struct {
 	name string               // command string
 	min  int                  // minimum args for the command
-	fn   func([]string) error // function to handle the command
+	fn   func(*ModtorioFlags, []string) error // function to handle the command
 }
 
 // compare a commandline string to the command's name
@@ -40,37 +40,25 @@ func (c Command) cmp(name string) bool {
 	return c.name == name
 }
 
-// command definitions
-var commands []Command = []Command{
-	{CMD_SEARCH, 1, search},
-	{CMD_DOWNLOAD, 1, download},
-	{CMD_UPDATE, 0, update},
-	{CMD_ENABLE, 1, enable},
-	{CMD_DISABLE, 1, disable},
-	{CMD_LIST, 0, list},
-	{CMD_HELP, 0, help},
-}
-
-// package wide flag values
 type ModtorioFlags struct {
 	dir      string
 	factorio *common.Semver
 }
 
-var stringVer string
-var FLAGS ModtorioFlags = ModtorioFlags{}
-
 // main function.
 // command argument handling
 func main() {
 	// define flags
-	flag.StringVar(&FLAGS.dir, FLAG_DIR, DEF_DIR, "Working directory")
-	flag.StringVar(&stringVer, FLAG_VER, DEF_VER, "Factorio version")
+	var strVer string
+	flags := &ModtorioFlags{}
+
+	flag.StringVar(&flags.dir, FLAG_DIR, DEF_DIR, "Working directory")
+	flag.StringVar(&strVer, FLAG_VER, DEF_VER, "Factorio version")
 
 	// parse the flags
 	flag.Parse()
 
-	semver, e := common.NewSemver(stringVer)
+	semver, e := common.NewSemver(strVer)
 
 	if e != nil {
 		fmt.Println("Factorio version flag:", e)
@@ -78,7 +66,7 @@ func main() {
 		return
 	}
 
-	FLAGS.factorio = semver
+	flags.factorio = semver
 
 	// validate all arguments and extract the command and its options
 	cmd, options, e := validate(os.Args)
@@ -89,7 +77,7 @@ func main() {
 		return
 	}
 
-	e = matchAndRun(cmd, options)
+	e = matchAndRun(cmd, flags, options)
 
 	if e != nil {
 		fmt.Println(e)
@@ -134,8 +122,17 @@ func validate(args []string) (string, []string, error) {
 	return argv[skip], options, nil
 }
 
-func matchAndRun(name string, options []string) error {
+func matchAndRun(name string, flags *ModtorioFlags, options []string) error {
 	optionCount := len(options)
+	commands := []Command{
+		{CMD_SEARCH, 1, search},
+		{CMD_DOWNLOAD, 1, download},
+		{CMD_UPDATE, 0, update},
+		{CMD_ENABLE, 1, enable},
+		{CMD_DISABLE, 1, disable},
+		{CMD_LIST, 0, list},
+		{CMD_HELP, 0, help},
+	}
 
 	// loop through all defined commands
 	for _, cmd := range commands {
@@ -143,7 +140,7 @@ func matchAndRun(name string, options []string) error {
 			// match found, compare minimum arguments
 			if optionCount >= cmd.min {
 				// minimum arguments found, call the handler
-				return cmd.fn(options)
+				return cmd.fn(flags, options)
 			} else {
 				// argument count does not meet the minimum
 				return fmt.Errorf("Not enough arguments for command: %s. Minimum: %d, Found: %d", cmd.name, cmd.min, optionCount)

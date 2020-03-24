@@ -13,7 +13,7 @@ const (
 
 // search for one or more mods.
 // the search term is compiled as a regular expression
-func search(options []string) error {
+func search(flags *ModtorioFlags, options []string) error {
 	var e error
 	var re *regexp.Regexp
 	var cmp func(*regexp.Regexp, *api.Result) bool

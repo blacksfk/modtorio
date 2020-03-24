@@ -4,6 +4,6 @@ import (
 	"modtorio/modlist"
 )
 
-func enable(options []string) error {
-	return modlist.SetStatus(FLAGS.dir, true, options)
+func enable(flags *ModtorioFlags, options []string) error {
+	return modlist.SetStatus(flags.dir, true, options)
 }

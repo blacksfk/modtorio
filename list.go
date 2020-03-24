@@ -9,26 +9,26 @@ const (
 	H_SEP = "-"
 )
 
-func list(options []string) error {
+func list(flags *ModtorioFlags, options []string) error {
 	if len(options) > 0 {
 		switch options[0] {
 		case "--all":
-			return listAll()
+			return listAll(flags.dir)
 		case "--enabled":
-			return listMods(true)
+			return listMods(flags.dir, true)
 		case "--disabled":
-			return listMods(false)
+			return listMods(flags.dir, false)
 		default:
 			return fmt.Errorf("Unknown option %s for command list", options[0])
 		}
 	}
 
 	// if no options default to all()
-	return listAll()
+	return listAll(flags.dir)
 }
 
-func listMods(enabled bool) error {
-	list, e := modlist.Read(FLAGS.dir)
+func listMods(dir string, enabled bool) error {
+	list, e := modlist.Read(dir)
 
 	if e != nil {
 		return e
@@ -48,8 +48,8 @@ func listMods(enabled bool) error {
 }
 
 // display all mods by name (column 1) and their status (column 2)
-func listAll() error {
-	list, e := modlist.Read(FLAGS.dir)
+func listAll(dir string) error {
+	list, e := modlist.Read(dir)
 
 	if e != nil {
 		return e

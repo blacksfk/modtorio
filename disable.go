@@ -4,6 +4,6 @@ import (
 	"modtorio/modlist"
 )
 
-func disable(options []string) error {
-	return modlist.SetStatus(FLAGS.dir, false, options)
+func disable(flags *ModtorioFlags, options []string) error {
+	return modlist.SetStatus(flags.dir, false, options)
 }
