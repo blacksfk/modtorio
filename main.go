@@ -26,6 +26,7 @@ const (
 	CMD_ENABLE   = "enable"
 	CMD_DISABLE  = "disable"
 	CMD_LIST     = "list"
+	CMD_HELP     = "help"
 )
 
 type Command struct {
@@ -47,7 +48,7 @@ var commands []Command = []Command{
 	{CMD_ENABLE, 1, enable},
 	{CMD_DISABLE, 1, disable},
 	{CMD_LIST, 0, list},
-	{"help", 0, help},
+	{CMD_HELP, 0, help},
 }
 
 // package wide flag values

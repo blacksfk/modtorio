@@ -19,6 +19,8 @@ func help(options []string) error {
 			helpDisable()
 		case CMD_LIST:
 			helpList()
+		case CMD_HELP:
+			helpHelp()
 		default:
 			return fmt.Errorf("Unknown command: %s", options[0])
 		}
@@ -38,11 +40,7 @@ func helpAll() {
 	fmt.Printf("\t--dir\tSpecify the working directory for commands that interact with modlist.json. Leave blank if the current directory contains modlist.json or you want modlist.json to be created in the current directory.\n")
 	fmt.Printf("\t--factorio\tSpecify the factorio version to compare releases against. Defaults to the latest version.\n\n")
 	fmt.Printf("Commands:\n")
-	fmt.Printf("help\n")
-	fmt.Printf("\tShow help text for a command or print this help text.\n")
-	fmt.Printf("\tExamples:\n")
-	fmt.Printf("\t\tmodtorio help\n")
-	fmt.Printf("\t\tmodtorio help search\n")
+	helpHelp()
 	helpSearch()
 	helpDownload()
 	helpUpdate()
@@ -61,7 +59,7 @@ func helpSearch() {
 	fmt.Printf("\tExamples:\n")
 	fmt.Printf("\t\tmodtorio search ^bob\n")
 	fmt.Printf("\t\tmodtorio search --tag general\n")
-	fmt.Printf("\t\tmodtorio search --owner py*\n")
+	fmt.Printf("\t\tmodtorio search --owner py.*\n")
 }
 
 func helpDownload() {
@@ -88,7 +86,7 @@ func helpEnable() {
 	fmt.Printf("enable\n")
 	fmt.Printf("\tEnable mods. Arguments are compiled as regular expressions.\n")
 	fmt.Printf("\tExamples:\n")
-	fmt.Printf("\t\tmodtorio enable bob* pyhightech ^angel\n")
+	fmt.Printf("\t\tmodtorio enable bob.* pyhightech ^angel\n")
 	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods enable bob*\n")
 }
 
@@ -97,7 +95,7 @@ func helpDisable() {
 	fmt.Printf("disable\n")
 	fmt.Printf("\tDisable mods. Arguments are compiled as regular expressions.\n")
 	fmt.Printf("\tExamples:\n")
-	fmt.Printf("\t\tmodtorio disable bob* pyhightech ^angel\n")
+	fmt.Printf("\t\tmodtorio disable bob.* pyhightech ^angel\n")
 	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods disable bob*\n")
 }
 
@@ -115,4 +113,13 @@ func helpList() {
 	fmt.Printf("\t\tmodtorio list --enabled\n")
 	fmt.Printf("\t\tmodtorio list --disabled\n")
 	fmt.Printf("\t\tmodtorio --dir ~/.config/factorio/mods list\n")
+}
+
+func helpHelp() {
+	// help command
+	fmt.Printf("help\n")
+	fmt.Printf("\tShow help text for a command or print this help text.\n")
+	fmt.Printf("\tExamples:\n")
+	fmt.Printf("\t\tmodtorio help\n")
+	fmt.Printf("\t\tmodtorio help search\n")
 }
