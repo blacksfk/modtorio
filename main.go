@@ -89,7 +89,7 @@ func main() {
 		return
 	}
 
-	e = matchCommand(cmd, options)
+	e = matchAndRun(cmd, options)
 
 	if e != nil {
 		fmt.Println(e)
@@ -134,7 +134,7 @@ func validate(args []string) (string, []string, error) {
 	return argv[skip], options, nil
 }
 
-func matchCommand(name string, options []string) error {
+func matchAndRun(name string, options []string) error {
 	optionCount := len(options)
 
 	// loop through all defined commands
