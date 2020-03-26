@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"modtorio/api"
 	"regexp"
@@ -9,40 +10,54 @@ import (
 const (
 	REGEXP_FLAGS    = "(?i)"
 	MIN_OPTION_ARGS = 2
+	S_FLAG_NAME     = "name-only"
+	S_FLAG_OWNER    = "owner"
+	S_FLAG_TAG      = "tag"
+	FULL_RESULT_SEP = "--------------------"
 )
+
+type cmpFunc func(*SearchRE, *api.Result) bool
+
+type SearchRE struct {
+	*regexp.Regexp
+	cmp cmpFunc
+}
+
+func newSearchRE(s string, cmp cmpFunc) (*SearchRE, error) {
+	re, e := regexp.Compile(REGEXP_FLAGS + s)
+
+	if e != nil {
+		return nil, e
+	}
+
+	return &SearchRE{re, cmp}, nil
+}
+
+func (sre *SearchRE) match(result *api.Result) bool {
+	return sre.cmp(sre, result)
+}
 
 // search for one or more mods.
 // the search term is compiled as a regular expression
 func search(flags *ModtorioFlags, options []string) error {
-	var e error
-	var re *regexp.Regexp
-	var cmp func(*regexp.Regexp, *api.Result) bool
-	count := len(options)
+	var nameOnly bool
+	var sres []*SearchRE
+	var strOwner, strTag string
 
-	switch options[0] {
-	// determine search type
-	case "--tag":
-		cmp = matchTag
-		fallthrough
-	case "--owner":
-		if count < MIN_OPTION_ARGS {
-			return fmt.Errorf("Not enough arguments to search %s", options[0])
-		}
+	searchFlags := flag.NewFlagSet("Search flags", flag.ContinueOnError)
 
-		if cmp == nil {
-			// cmp is still nil so tag must be "--owner"
-			// (no fall through from "--tag")
-			cmp = matchOwner
-		}
+	searchFlags.BoolVar(&nameOnly, S_FLAG_NAME, false, "Print a space-delimited list of mod names")
+	searchFlags.StringVar(&strOwner, S_FLAG_OWNER, "", "Match a mod by owner")
+	searchFlags.StringVar(&strTag, S_FLAG_TAG, "", "Match a mod by tag")
+	searchFlags.Parse(options)
 
-		re, e = regexp.Compile(REGEXP_FLAGS + options[1])
-	default:
-		cmp = matchName
-		re, e = regexp.Compile(REGEXP_FLAGS + options[0])
-	}
+	sres = compileAndAppend(strOwner, matchOwner, sres)
+	sres = compileAndAppend(strTag, matchTag, sres)
+	sres = compileAndAppend(searchFlags.Arg(0), matchNameOrTitle, sres)
 
-	if e != nil {
-		return e
+	if len(sres) == 0 {
+		// nothing compiled properly
+		return fmt.Errorf("search: regular expressions failed compilation")
 	}
 
 	results, e := api.GetAll()
@@ -51,35 +66,76 @@ func search(flags *ModtorioFlags, options []string) error {
 		return e
 	}
 
-	matches := 0
+	var matches []*api.Result
+	matchCount := 0
 
+	// for each mod result:
+	// if it returns true for all comparison functions add it to the matches
 	for _, result := range results {
-		if cmp(re, result) {
-			// increment the match count and print a divider and mod information
-			matches++
-			fmt.Println("-------------")
-			fmt.Println(result)
+		match := true
+
+		for _, sre := range sres {
+			match = sre.match(result)
+
+			if !match {
+				// did not match so break early
+				break
+			}
+		}
+
+		if match {
+			// matched all comparison functions
+			matchCount++
+			matches = append(matches, result)
 		}
 	}
 
-	// print the ending divider and the match count
-	fmt.Println("-------------")
-	fmt.Printf("Found %d mods matching %v\n", matches, re)
+	if nameOnly {
+		// print all matched mods' names on a single line
+		for i := 0; i < matchCount; i++ {
+			fmt.Print(matches[i].Name)
+
+			if i < matchCount-1 {
+				// only print spaces if not the last element
+				fmt.Print(" ")
+			} else {
+				fmt.Println()
+			}
+		}
+	} else {
+		// print the mod formatted, with a separator, and total match count
+		for i := 0; i < matchCount; i++ {
+			fmt.Println(matches[i])
+			fmt.Println(FULL_RESULT_SEP)
+		}
+
+		fmt.Printf("%d matches\n", matchCount)
+	}
 
 	return nil
 }
 
-// compare the search term with the name and title properties
-func matchName(re *regexp.Regexp, r *api.Result) bool {
-	return re.MatchString(r.Name) || re.MatchString(r.Title)
+func matchOwner(sre *SearchRE, result *api.Result) bool {
+	return sre.MatchString(result.Owner)
 }
 
-// compare the search term with the category (tag) property
-func matchTag(re *regexp.Regexp, r *api.Result) bool {
-	return re.MatchString(r.Category)
+func matchTag(sre *SearchRE, result *api.Result) bool {
+	return sre.MatchString(result.Category)
 }
 
-// compare the search term with the owner property
-func matchOwner(re *regexp.Regexp, r *api.Result) bool {
-	return re.MatchString(r.Owner)
+func matchNameOrTitle(sre *SearchRE, result *api.Result) bool {
+	return sre.MatchString(result.Name) || sre.MatchString(result.Title)
+}
+
+func compileAndAppend(s string, cmp cmpFunc, sres []*SearchRE) []*SearchRE {
+	if len(s) > 0 {
+		sre, e := newSearchRE(s, cmp)
+
+		if e == nil {
+			// only append if no error was returned
+			sres = append(sres, sre)
+		}
+	}
+
+	return sres
 }
