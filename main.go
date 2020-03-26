@@ -9,15 +9,11 @@ import (
 	"flag"
 	"fmt"
 	"modtorio/common"
-	"os"
 )
 
 const (
-	MIN_ARGS     = 2          // including program name
 	FLAG_DIR     = "dir"      // name of the working directory flag
 	FLAG_VER     = "factorio" // name of the factorio version flag
-	RAW_FLAG_DIR = "--" + FLAG_DIR
-	RAW_FLAG_VER = "--" + FLAG_VER
 	DEF_DIR      = "./"             // default to the current directory
 	DEF_VER      = common.MATCH_ANY // default to match any version
 	CMD_SEARCH   = "search"
@@ -30,8 +26,8 @@ const (
 )
 
 type Command struct {
-	name string               // command string
-	min  int                  // minimum args for the command
+	name string                               // command string
+	min  int                                  // minimum args for the command
 	fn   func(*ModtorioFlags, []string) error // function to handle the command
 }
 
@@ -68,13 +64,22 @@ func main() {
 
 	flags.factorio = semver
 
-	// validate all arguments and extract the command and its options
-	cmd, options, e := validate(os.Args)
+	// validate remaining arguments
+	argv := flag.Args()
+	argc := len(argv)
 
-	if e != nil {
-		fmt.Println("Validation failed:", e)
+	if argc == 0 {
+		fmt.Println("No command specified")
 
 		return
+	}
+
+	var options []string
+	cmd := argv[0]
+
+	if argc > 1 {
+		// options or flags for command
+		options = argv[1:]
 	}
 
 	e = matchAndRun(cmd, flags, options)
@@ -84,42 +89,6 @@ func main() {
 
 		return
 	}
-}
-
-// validate the arguments, extract the command and any options
-func validate(args []string) (string, []string, error) {
-	var options []string
-
-	// check if at least MIN_ARGS were provided
-	// eg. modtorio list
-	if len(args) < MIN_ARGS {
-		return "", options, fmt.Errorf("No command specified\n")
-	}
-
-	skip := 0
-	argv := args[1:] // skip program name
-
-	for _, arg := range argv {
-		if arg == RAW_FLAG_DIR || arg == RAW_FLAG_VER {
-			// skip 2; one for flag, one for the flag's value
-			skip += 2
-		}
-	}
-
-	argc := len(argv)
-
-	// check if something was provided after the flags
-	if argc <= skip {
-		return "", options, fmt.Errorf("Invalid arguments: %v", argv)
-	}
-
-	// check if options were provided after the command string
-	// so skip an extra
-	if skip+1 < argc {
-		options = argv[skip+1:]
-	}
-
-	return argv[skip], options, nil
 }
 
 func matchAndRun(name string, flags *ModtorioFlags, options []string) error {
