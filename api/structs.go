@@ -128,5 +128,10 @@ type Tag struct {
 
 // JSON API errors
 type apiError struct {
-	Message string
+	StatusCode      int
+	Status, Message string
+}
+
+func (ae apiError) Error() string {
+	return fmt.Sprintf("%s: %s", ae.Status, ae.Message)
 }

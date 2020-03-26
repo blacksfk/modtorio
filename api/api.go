@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -16,7 +15,8 @@ func handleResponse(res *http.Response) ([]byte, error) {
 		return nil, e
 	}
 
-	if res.StatusCode >= http.StatusBadRequest {
+	if res.StatusCode >= http.StatusBadRequest && res.StatusCode < http.StatusInternalServerError {
+		// only unmarshal the body if a 4xx error occurred
 		reqError := &apiError{}
 		e = json.Unmarshal(body, reqError)
 
@@ -24,8 +24,13 @@ func handleResponse(res *http.Response) ([]byte, error) {
 			return nil, e
 		}
 
-		// something went wrong with the request
-		return nil, fmt.Errorf("%s: %s", res.Status, reqError.Message)
+		reqError.Status = res.Status
+		reqError.StatusCode = res.StatusCode
+
+		return nil, reqError
+	} else if res.StatusCode >= http.StatusInternalServerError {
+		// the API crashed or some other bs
+		return nil, &apiError{res.StatusCode, res.Status, string(body)}
 	}
 
 	return body, nil
