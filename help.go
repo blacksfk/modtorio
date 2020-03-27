@@ -56,10 +56,13 @@ func helpSearch() {
 	fmt.Printf("\tOptions:\n")
 	fmt.Printf("\t\t--tag\tSearch for mods based on a tag\n")
 	fmt.Printf("\t\t--owner\tSearch for mods created by a user\n")
+	fmt.Printf("\t\t--name-only\tOnly print out the mod name for matching mods\n")
 	fmt.Printf("\tExamples:\n")
 	fmt.Printf("\t\tmodtorio search ^bob\n")
 	fmt.Printf("\t\tmodtorio search --tag general\n")
 	fmt.Printf("\t\tmodtorio search --owner py.*\n")
+	fmt.Printf("\t\tmodtorio search --name-only angel\n")
+	fmt.Printf("\t\tmodtorio search --owner bobingabout --tag general --name-only")
 }
 
 func helpDownload() {
