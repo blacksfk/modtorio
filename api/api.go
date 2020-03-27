@@ -24,8 +24,7 @@ func handleResponse(res *http.Response) ([]byte, error) {
 			return nil, e
 		}
 
-		reqError.Status = res.Status
-		reqError.StatusCode = res.StatusCode
+		reqError.StatusText = res.Status
 
 		return nil, reqError
 	} else if res.StatusCode >= http.StatusInternalServerError {
