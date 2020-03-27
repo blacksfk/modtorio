@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"modtorio/credentials"
 	"net/http"
 	"net/url"
 )
@@ -11,24 +10,24 @@ const (
 	URL_LOGIN = "https://auth.factorio.com/api-login"
 )
 
-func Login(creds *credentials.Credentials) error {
+func Login(username, password string) (string, error) {
 	data := url.Values{}
 
 	// append the username and password
-	data.Set("username", creds.Username)
-	data.Set("password", creds.Password)
+	data.Set("username", username)
+	data.Set("password", password)
 
 	// send the request
 	res, e := http.PostForm(URL_LOGIN, data)
 
 	if e != nil {
-		return e
+		return "", e
 	}
 
 	body, e := handleResponse(res)
 
 	if e != nil {
-		return e
+		return "", e
 	}
 
 	// request/response was all good, convert to JSON
@@ -36,11 +35,8 @@ func Login(creds *credentials.Credentials) error {
 	e = json.Unmarshal(body, &loginData)
 
 	if e != nil {
-		return e
+		return "", e
 	}
 
-	creds.Token = loginData[0]
-
-	// all is good, return no error
-	return nil
+	return loginData[0], nil
 }

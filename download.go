@@ -63,21 +63,21 @@ func attemptLogin() (*credentials.Credentials, error) {
 	}
 
 	// something went wrong with the cached credentials
-	attempts := 0
-
-	for ; attempts < MAX_LOGIN_ATTEMPTS; attempts++ {
+	for attempts := 0; attempts < MAX_LOGIN_ATTEMPTS; attempts++ {
 		creds, e = promptForCreds()
 
 		if e != nil {
 			return nil, e
 		}
 
-		e = api.Login(creds)
+		fmt.Print("Retrieving token...")
+		creds.Token, e = api.Login(creds.Username, creds.Password)
 
 		if e != nil {
 			fmt.Println(e)
 		} else {
 			// logged in successfully, cache creds
+			fmt.Println("success")
 			creds.ToCache()
 
 			return creds, nil
@@ -85,20 +85,21 @@ func attemptLogin() (*credentials.Credentials, error) {
 	}
 
 	return nil, fmt.Errorf("Maximum login attempts reached")
-
 }
 
 // prompt the user for their login credentials
 func promptForCreds() (*credentials.Credentials, error) {
 	fmt.Println("Please enter your credentials to download from mods.factorio.com")
 
-	stdin := bufio.NewReader(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Username: ")
-	username, e := stdin.ReadString('\n')
+	scanner.Scan()
 
-	if e != nil {
+	if e := scanner.Err(); e != nil {
 		return nil, e
 	}
+
+	username := scanner.Text()
 
 	// use the terminal package to read the password so it isn't
 	// echoed back to the user in plain sight
@@ -113,7 +114,7 @@ func promptForCreds() (*credentials.Credentials, error) {
 	// same line as the password prompt
 	fmt.Printf("\n")
 
-	return credentials.NewCredentials(strings.TrimRight(username, "\n"), string(bytes)), nil
+	return credentials.NewCredentials(username, string(bytes)), nil
 }
 
 // Download the releases. Authenticates the user prior to downloading.
@@ -132,18 +133,19 @@ func downloadReleases(dir string, releases []*api.Release) error {
 	}
 
 	// prompt the user for confirmation of the releases to be downloaded
-	stdin := bufio.NewReader(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Printf("\n\nContinue? (Y/n): ")
-	answer, e := stdin.ReadString('\n')
+	scanner.Scan()
 
-	if e != nil {
+	if e := scanner.Err(); e != nil {
 		return e
 	}
 
-	if answer[0] != '\n' && strings.ToLower(answer)[0] != 'y' {
-		fmt.Println("Downloads cancelled")
+	answer := scanner.Text()
 
-		return nil
+	// cancel downloads if not "yes" or empty string (linefeed)
+	if len(answer) > 0 && strings.ToLower(answer)[0] != 'y' {
+		return fmt.Errorf("Downloads cancelled")
 	}
 
 	// log the user in
