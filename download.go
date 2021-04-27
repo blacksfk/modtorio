@@ -3,13 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
-	"modtorio/api"
-	"modtorio/credentials"
-	"modtorio/modlist"
 	"os"
 	"strings"
 	"syscall"
+
+	"github.com/blacksfk/modtorio/api"
+	"github.com/blacksfk/modtorio/credentials"
+	"github.com/blacksfk/modtorio/modlist"
+	"golang.org/x/term"
 )
 
 const (
@@ -104,7 +105,7 @@ func promptForCreds() (*credentials.Credentials, error) {
 	// use the terminal package to read the password so it isn't
 	// echoed back to the user in plain sight
 	fmt.Print("Password: ")
-	bytes, e := terminal.ReadPassword(int(syscall.Stdin))
+	bytes, e := term.ReadPassword(int(syscall.Stdin))
 
 	if e != nil {
 		return nil, e

@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"modtorio/modlist"
+
+	"github.com/blacksfk/modtorio/modlist"
 )
 
 const (

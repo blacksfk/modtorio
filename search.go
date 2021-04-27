@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"modtorio/api"
 	"regexp"
+
+	"github.com/blacksfk/modtorio/api"
 )
 
 const (

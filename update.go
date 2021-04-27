@@ -1,9 +1,9 @@
 package main
 
 import (
-	"modtorio/api"
-	"modtorio/common"
-	"modtorio/modlist"
+	"github.com/blacksfk/modtorio/api"
+	"github.com/blacksfk/modtorio/common"
+	"github.com/blacksfk/modtorio/modlist"
 )
 
 type ModResult struct {

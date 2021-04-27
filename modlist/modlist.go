@@ -8,10 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"modtorio/common"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/blacksfk/modtorio/common"
 )
 
 const (

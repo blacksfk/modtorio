@@ -8,12 +8,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"modtorio/common"
+
+	"github.com/blacksfk/modtorio/common"
 )
 
 const (
-	FLAG_DIR     = "dir"      // name of the working directory flag
-	FLAG_VER     = "factorio" // name of the factorio version flag
+	FLAG_DIR     = "dir"            // name of the working directory flag
+	FLAG_VER     = "factorio"       // name of the factorio version flag
 	DEF_DIR      = "./"             // default to the current directory
 	DEF_VER      = common.MATCH_ANY // default to match any version
 	CMD_SEARCH   = "search"

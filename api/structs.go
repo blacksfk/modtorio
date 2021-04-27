@@ -3,10 +3,11 @@ package api
 import (
 	"fmt"
 	"io/ioutil"
-	"modtorio/common"
-	"modtorio/credentials"
 	"net/http"
 	"strings"
+
+	"github.com/blacksfk/modtorio/common"
+	"github.com/blacksfk/modtorio/credentials"
 )
 
 const (

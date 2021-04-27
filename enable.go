@@ -1,7 +1,7 @@
 package main
 
 import (
-	"modtorio/modlist"
+	"github.com/blacksfk/modtorio/modlist"
 )
 
 func enable(flags *ModtorioFlags, options []string) error {
