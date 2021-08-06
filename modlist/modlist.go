@@ -7,7 +7,6 @@ package modlist
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -38,13 +37,13 @@ func (list *ModList) Write(dir string) error {
 		return e
 	}
 
-	return ioutil.WriteFile(path, bytes, MODE)
+	return os.WriteFile(path, bytes, MODE)
 }
 
 // populate the archive file data for all mods in this list.
 // does not return an error if no match for a mod is found.
 func (list *ModList) FindArchives(dir string) error {
-	files, e := ioutil.ReadDir(dir)
+	files, e := os.ReadDir(dir)
 
 	if e != nil {
 		return e
@@ -144,7 +143,7 @@ var base *Mod = &Mod{"base", true, nil}
 
 func Read(dir string) (*ModList, error) {
 	path := genPath(dir)
-	bytes, e := ioutil.ReadFile(path)
+	bytes, e := os.ReadFile(path)
 
 	if e != nil {
 		if os.IsNotExist(e) {

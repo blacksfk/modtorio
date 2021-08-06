@@ -2,14 +2,14 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 // auxiliary function to check for request errors
 func handleResponse(res *http.Response) ([]byte, error) {
 	defer res.Body.Close()
-	body, e := ioutil.ReadAll(res.Body)
+	body, e := io.ReadAll(res.Body)
 
 	if e != nil {
 		return nil, e

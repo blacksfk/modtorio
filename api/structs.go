@@ -2,8 +2,8 @@ package api
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/blacksfk/modtorio/common"
@@ -97,7 +97,7 @@ func (r *Release) Download(dir string, creds *credentials.Credentials) error {
 	}
 
 	path := dir + r.File_name
-	e = ioutil.WriteFile(path, body, MODE)
+	e = os.WriteFile(path, body, MODE)
 
 	if e != nil {
 		return e

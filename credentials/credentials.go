@@ -6,7 +6,7 @@ package credentials
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 )
 
 const (
@@ -31,7 +31,7 @@ func NewCredentials(username, password string) *Credentials {
 
 // Get a set of credentials from the cache.
 func FromCache() (*Credentials, error) {
-	bytes, e := ioutil.ReadFile(CACHE)
+	bytes, e := os.ReadFile(CACHE)
 
 	if e != nil {
 		return nil, e
@@ -55,5 +55,5 @@ func (c *Credentials) ToCache() error {
 		return e
 	}
 
-	return ioutil.WriteFile(CACHE, bytes, MODE)
+	return os.WriteFile(CACHE, bytes, MODE)
 }
