@@ -13,10 +13,6 @@ import (
 )
 
 const (
-	FLAG_DIR     = "dir"            // name of the working directory flag
-	FLAG_VER     = "factorio"       // name of the factorio version flag
-	DEF_DIR      = "./"             // default to the current directory
-	DEF_VER      = common.MATCH_ANY // default to match any version
 	CMD_SEARCH   = "search"
 	CMD_DOWNLOAD = "download"
 	CMD_UPDATE   = "update"
@@ -49,8 +45,8 @@ func main() {
 	var strVer string
 	flags := &ModtorioFlags{}
 
-	flag.StringVar(&flags.dir, FLAG_DIR, DEF_DIR, "Working directory")
-	flag.StringVar(&strVer, FLAG_VER, DEF_VER, "Factorio version")
+	flag.StringVar(&flags.dir, "dir", "./", "Working directory")
+	flag.StringVar(&strVer, "factorio", common.MATCH_ANY, "Factorio version")
 
 	// parse the flags
 	flag.Parse()
