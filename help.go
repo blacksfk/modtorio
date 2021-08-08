@@ -54,15 +54,15 @@ func helpSearch() {
 	fmt.Printf("search\n")
 	fmt.Printf("\tSearch for a mod. The argument is compiled as a regular expression.\n")
 	fmt.Printf("\tOptions:\n")
-	fmt.Printf("\t\t--tag\tSearch for mods based on a tag\n")
-	fmt.Printf("\t\t--owner\tSearch for mods created by a user\n")
+	fmt.Printf("\t\t--tag\t\tSearch for mods based on a tag\n")
+	fmt.Printf("\t\t--owner\t\tSearch for mods created by a user\n")
 	fmt.Printf("\t\t--name-only\tOnly print out the mod name for matching mods\n")
 	fmt.Printf("\tExamples:\n")
 	fmt.Printf("\t\tmodtorio search ^bob\n")
 	fmt.Printf("\t\tmodtorio search --tag general\n")
 	fmt.Printf("\t\tmodtorio search --owner py.*\n")
 	fmt.Printf("\t\tmodtorio search --name-only angel\n")
-	fmt.Printf("\t\tmodtorio search --owner bobingabout --tag general --name-only")
+	fmt.Printf("\t\tmodtorio search --owner bobingabout --tag general --name-only\n")
 }
 
 func helpDownload() {
@@ -107,7 +107,7 @@ func helpList() {
 	fmt.Printf("list\n")
 	fmt.Printf("\tList mods. Base mod is intentionally left out as it should not be manipulated.\n")
 	fmt.Printf("\tOptions:\n")
-	fmt.Printf("\t\t--all\tList all installed mods (default)\n")
+	fmt.Printf("\t\t--all\t\tList all installed mods (default)\n")
 	fmt.Printf("\t\t--enabled\tList all enabled mods\n")
 	fmt.Printf("\t\t--disabled\tList all disabled mods\n")
 	fmt.Printf("\tExamples:\n")
